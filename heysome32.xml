@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>D:\heysome32\SmartPrint-0.0.1-SNAPSHOT.jar</jar>
+  <outfile>D:\heysome32\SmartPrint.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>D:\icon.ico</icon>
+  <jre>
+    <path>jre1.8.0_202</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>false</requires64Bit>
+    <minVersion>1.8</minVersion>
+    <maxVersion></maxVersion>
+  </jre>
+  <versionInfo>
+    <fileVersion>1.0.0.3</fileVersion>
+    <txtFileVersion>1.03</txtFileVersion>
+    <fileDescription>hey-poca</fileDescription>
+    <copyright>SolutionFocus</copyright>
+    <productVersion>1.0.0.0</productVersion>
+    <txtProductVersion>SolutionFocus</txtProductVersion>
+    <productName>hey-poca</productName>
+    <companyName></companyName>
+    <internalName>SolutionFocus</internalName>
+    <originalFilename>SmartPrint.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>ENGLISH_US</language>
+  </versionInfo>
+</launch4jConfig>
