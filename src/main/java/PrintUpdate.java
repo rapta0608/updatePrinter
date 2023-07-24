@@ -1,14 +1,20 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jcraft.jsch.*;
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.time.LocalDateTime;
 
 public class PrintUpdate {
 
     public static void main(String[] args) {
+
+
         // TODO Auto-generated method stub
         System.out.println("[GUI - JButton과 JLabel 사용해 버튼 클릭 시 카운트 증가 실시]");
 
@@ -23,7 +29,7 @@ public class PrintUpdate {
         JFrame frm = new JFrame("hey-poca");
 
         //TODO 부모 프레임 크기 설정 (가로, 세로)
-        frm.setSize(350, 300);
+        frm.setSize(400, 300);
 
         //TODO 부모 프레임을 화면 가운데에 배치
         frm.setLocationRelativeTo(null);
@@ -37,45 +43,124 @@ public class PrintUpdate {
         //TODO 자식 컴포넌트 생성
         JButton btn1 = new JButton("시작");
         JButton btn2 = new JButton("종료");
-        JLabel txt1 = new JLabel("준비");
+        JButton btn3 = new JButton("업데이트 확인");
+        JLabel txt1 = new JLabel("업데이트 확인중");
 
         //TODO 자식 컴포넌트  버튼 위치와 크기 설정
-        btn1.setBounds(30, 170, 122, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
-        btn2.setBounds(182, 170, 122, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
-        txt1.setBounds(120, 50, 90, 50); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
+        btn1.setBounds(50, 170, 100, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
+        btn2.setBounds(250, 170, 100, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
+
+        txt1.setBounds(0, 50, 300, 50); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
         txt1.setHorizontalAlignment(JLabel.CENTER); //텍스트 센터 표시 설정
+
+
+
+
+        txt1.setText("실행가능");
+        btn1.setVisible(true);
 
         //TODO 자식 컴포넌트 이벤트 정의
         ActionListener btn1_action = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                
-                String strimg = new File("").getAbsolutePath();
+                txt1.setText("실행중...");
 
-                String osArch = System.getProperty("os.arch");
+                Thread executionThread = new Thread(() -> {
+                    String serverVersion = getServerFileVersion("https://heysome.kr:444/api/v1/app/print/version/46"); // 서버에 있는 파일 버전 정보를 담은 텍스트 파일의 URL을 입력하세요.
+                    String filePath = new File("").getAbsolutePath()+"\\x86\\version.txt";
+                    String localVersion = getLocalFileVersion(filePath); // 로컬에 있는 파일 경로를 입력하세요.
 
-                File file =new File(strimg+"\\"+osArch+"\\SmartPrint.exe");
-                Thread execThread = new Thread(() -> {
-                    try {
-                        Process p = Runtime.getRuntime().exec(strimg+"\\"+osArch+"\\SmartPrint.exe");
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                        String line;
+                    if (serverVersion != null && localVersion != null) {
+                        if (serverVersion.equals(localVersion) || (Integer.parseInt(serverVersion) <= Integer.parseInt(localVersion))) {
 
-                        while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
+                            String strimg = new File("").getAbsolutePath();
+
+                            String osArch = System.getProperty("os.arch");
+
+                            File file = new File(strimg + "\\" + osArch + "\\SmartPrint.exe");
+                            Thread execThread = new Thread(() -> {
+                                try {
+                                    Process p = Runtime.getRuntime().exec(strimg + "\\" + osArch + "\\SmartPrint.exe");
+                                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                                    String line;
+
+                                    while ((line = reader.readLine()) != null) {
+                                        System.out.println(line);
+                                    }
+
+                                    p.waitFor();
+                                } catch (Exception b) {
+                                    b.printStackTrace();
+                                }
+                            });
+
+                            execThread.start();
+                            txt1.setText("실행");
+                            btn1.setVisible(false);
+                            btn2.setVisible(true);
+                        }
+                        if(Integer.parseInt(serverVersion) > Integer.parseInt(localVersion) ){
+                            btn1.setVisible(false);
+                            txt1.setText("업데이트가 필요합니다.  업데이트를 진행합니다.");
+
+                            try {
+
+                                Session session = null;
+                                JSch jsch = new JSch();
+                                session = jsch.getSession("root", "175.126.123.207", 22);
+                                session.setPassword("!solfocus0510");
+
+                                session.setConfig("StrictHostKeyChecking", "no");
+                                session.connect();
+
+                                ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+                                channelSftp.connect();
+
+
+                                String strimg = new File("").getAbsolutePath() + "\\x64";
+                                channelSftp.get("/home/heysomeAPI/idp-print/update/SmartPrint.exe", strimg);
+
+
+                                String strimg2 = new File("").getAbsolutePath() + "\\x86";
+                                channelSftp.get("/home/heysomeAPI/idp-print/update/SmartPrint.exe", strimg2);
+
+
+                                channelSftp.disconnect();
+                                session.disconnect();
+                                txt1.setText("업데이트가 완료되었습니다.다시 실행해주세요.");
+                                btn1.setVisible(true);
+
+
+                                try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
+                                    String newContent = serverVersion;
+                                    bw.write(newContent);
+                                } catch (IOException k) {
+                                    k.printStackTrace();
+                                }
+
+
+                            } catch (JSchException | SftpException h) {
+                                h.printStackTrace();
+                            }
+
+
                         }
 
-                        p.waitFor();
-                    } catch (Exception b) {
-                        b.printStackTrace();
+                    } else {
+                        System.out.println("버전 정보를 가져오는 데에 실패하였습니다.");
                     }
+
+
+
                 });
 
-                execThread.start();
-                txt1.setText("실행");
-                btn1.setVisible(false);
-                btn2.setVisible(true);
+                executionThread.start();
+
+
+                frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+
             }
 
         };
@@ -122,10 +207,13 @@ public class PrintUpdate {
         };
         btn2.addActionListener(btn2_action);
 
+
+
         //TODO 부모 프레임에다가 자식 컴포넌트 추가
 
         frm.getContentPane().add(btn1);
         frm.getContentPane().add(btn2);
+        frm.getContentPane().add(btn3);
         frm.getContentPane().add(txt1);
 
         //TODO 부모 프레임이 보이도록 설정
@@ -141,4 +229,61 @@ public class PrintUpdate {
         Runtime.getRuntime().exec(killCommand).waitFor();
     }
 
+
+
+    public static String getLocalFileVersion(String filePath) {
+        String version="0";
+
+
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                version=line;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return version;
+    }
+        // 로컬 파일 버전 정보를 가져오는 코드를 구현해야 합니다.
+        // 예를 들어, 파일의 내용을 읽어서 버전 정보를 추출하는 방법을 사용할 수 있습니다.
+        // 이 예시에서는 단순히 "1.0.0"으로 가정합니다.
+
+
+    public static String getServerFileVersion(String serverUrl) {
+        try {
+            ObjectMapper objectMapper=new ObjectMapper();
+            URL url = new URL(serverUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                StringBuilder response = new StringBuilder();
+
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+
+
+                br.close();
+
+                JSONObject jsonObject = new JSONObject(response.toString());
+                JSONObject resultObject = jsonObject.getJSONObject("result");
+                String cd_code = (String) resultObject.get("cd_code");
+
+                return cd_code;
+            } else {
+                System.out.println("서버 연결에 실패하였습니다. 응답 코드: " + conn.getResponseCode());
+                return null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

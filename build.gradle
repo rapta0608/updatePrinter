@@ -16,6 +16,11 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation group: 'com.jcraft', name: 'jsch', version: '0.1.55'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation 'org.json:json:20180813'
+
 }
 
 test {
