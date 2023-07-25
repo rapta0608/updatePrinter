@@ -1,6 +1,7 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import org.json.JSONObject;
+import org.springframework.util.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public class PrintUpdate {
 
     public static void main(String[] args) {
-
+        SetEvolisPrint();
 
         // TODO Auto-generated method stub
         System.out.println("[GUI - JButton과 JLabel 사용해 버튼 클릭 시 카운트 증가 실시]");
@@ -284,6 +285,135 @@ public class PrintUpdate {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+
+    private static void SetEvolisPrint() {
+        String falsePrint = "";
+        String truePrint = "";
+        try {
+            // 실행할 명령어 설정
+
+
+            String command = "wmic printer get Name, PortName,  WorkOffline";
+
+            // 프로세스 실행
+            Process process = Runtime.getRuntime().exec(command);
+
+            // 프로세스의 출력 스트림을 버퍼드 리더로 읽음
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "Cp949"));
+
+            // 출력 결과 읽기
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("Evolis")) {
+                    if (line.contains("TRUE")) {
+                        String[] parts = line.split("\\s{2,}"); // 두 개 이상의 공백으로 분리
+                        if (parts.length > 0) {
+
+                            String name = parts[0].trim(); // "Name" 컬럼 값 추출
+
+                            falsePrint = name;
+                        }
+                    }
+                    if (line.contains("FALSE")) {
+                        String[] parts = line.split("\\s{2,}"); // 두 개 이상의 공백으로 분리
+                        if (parts.length > 0) {
+
+                            String name = parts[0].trim(); // "Name" 컬럼 값 추출
+                            truePrint = name;
+                        }
+                    }
+                }
+            }
+
+
+            System.out.println(falsePrint);
+            System.out.println(truePrint);
+            // 프로세스 종료 대기
+            process.waitFor();
+            if (StringUtils.hasText(falsePrint)) {
+                try {
+                    // 이전 프린터 이름과 새로운 프린터 이름을 자바 변수로 저장
+                    String oldPrinterName = falsePrint;
+                    String newPrinterName = falsePrint + "off";
+
+                    // 배치 파일 경로 지정 (경로를 적절히 수정해주세요)
+
+
+                    String strimg = new File("").getAbsolutePath();
+                    String batchFilePath = strimg + "\\x86\\changeName.bat";
+
+                    // ProcessBuilder를 사용하여 배치 파일 실행
+                    ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", batchFilePath, oldPrinterName, newPrinterName);
+
+                    // 프로세스 실행
+                    Process process2 = builder.start();
+
+                    // 프로세스가 완료될 때까지 대기
+                    process2.waitFor();
+
+                    System.out.println("프린터 이름 변경이 완료되었습니다.");
+
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (StringUtils.hasText(truePrint)) {
+                try {
+                    // 이전 프린터 이름과 새로운 프린터 이름을 자바 변수로 저장
+                    String oldPrinterName = truePrint;
+                    String newPrinterName = "Evolis KC Prime";
+
+                    // 배치 파일 경로 지정 (경로를 적절히 수정해주세요)
+
+
+                    String strimg = new File("").getAbsolutePath();
+                    String batchFilePath = strimg + "\\x86\\changeName.bat";
+
+                    // ProcessBuilder를 사용하여 배치 파일 실행
+                    ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", batchFilePath, oldPrinterName, newPrinterName);
+
+                    // 프로세스 실행
+                    Process process2 = builder.start();
+
+                    // 프로세스가 완료될 때까지 대기
+                    process2.waitFor();
+
+                    System.out.println("프린터 이름 변경이 완료되었습니다.");
+
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (StringUtils.hasText(truePrint)) {
+            try {
+                // 명령어 설정
+                String rundll32Command = "RUNDLL32 PRINTUI.DLL,PrintUIEntry /y /n \"Evolis KC Prime\"";
+
+                // 프로세스 빌더 생성
+                ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", rundll32Command);
+
+                // 프로세스 실행
+                Process process = processBuilder.start();
+
+                // 프로세스 종료 대기
+                int exitCode = process.waitFor();
+
+                if (exitCode == 0) {
+                    System.out.println("명령어 실행 성공!");
+                } else {
+                    System.err.println("명령어 실행 실패! (Exit Code: " + exitCode + ")");
+                }
+
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

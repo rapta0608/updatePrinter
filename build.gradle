@@ -21,6 +21,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation 'org.json:json:20180813'
 
+    implementation group: 'net.java.dev.jna', name: 'jna', version: '5.10.0'
+
 }
 
 test {
