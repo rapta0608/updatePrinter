@@ -68,6 +68,11 @@ public class PrintUpdate {
                 txt1.setText("실행중...");
 
                 Thread executionThread = new Thread(() -> {
+
+
+
+
+
                     String serverVersion = getServerFileVersion("https://heysome.kr:444/api/v1/app/print/version/46"); // 서버에 있는 파일 버전 정보를 담은 텍스트 파일의 URL을 입력하세요.
                     String filePath = new File("").getAbsolutePath()+"\\x86\\version.txt";
                     String localVersion = getLocalFileVersion(filePath); // 로컬에 있는 파일 경로를 입력하세요.
@@ -88,16 +93,21 @@ public class PrintUpdate {
 
                                     while ((line = reader.readLine()) != null) {
                                         System.out.println(line);
+
+
                                     }
 
                                     p.waitFor();
                                 } catch (Exception b) {
+                                    txt1.setText("에러가 발생했습니다. 종료 후 재시작해주세요");
                                     b.printStackTrace();
                                 }
                             });
 
                             execThread.start();
                             txt1.setText("실행");
+                            execThread.interrupt();
+
                             btn1.setVisible(false);
                             btn2.setVisible(true);
                         }
@@ -170,16 +180,27 @@ public class PrintUpdate {
         ActionListener btn2_action = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String programName = "chrome.exe"; // 종료하려는 프로그램의 이름
+
 
                 Thread executionThread = new Thread(() -> {
+                    String programName = "chrome.exe"; // 종료하려는 프로그램의 이름
+                    Runtime rt = Runtime.getRuntime();
                     try {
-                        Runtime rt = Runtime.getRuntime();
                         Process p = rt.exec("tasklist");
                         Process p2 = Runtime.getRuntime().exec("netstat -ano");
                         BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                         BufferedReader reader2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
                         String line;
+
+
+                        while ((line = reader.readLine()) != null) {
+                            if (line.contains(programName)) {
+                                // 프로그램 목록에서 특정 프로그램을 찾았을 때 해당 프로세스를 종료
+                                String processId = line.split("\\s+")[1];
+                                terminateProcess(processId);
+                            }
+                        }
+
 
                         while ((line = reader2.readLine()) != null) {
                             if (line.contains(":8080")) {
@@ -188,11 +209,12 @@ public class PrintUpdate {
                                 terminateProcess(processId);
                             }
                         }
-
                         p.waitFor();
                         p2.waitFor();
-                    } catch (Exception c) {
-                        c.printStackTrace();
+                    } catch (IOException k) {
+
+                    } catch (InterruptedException m) {
+
                     }
                 });
 
