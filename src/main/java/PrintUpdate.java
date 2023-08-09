@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.springframework.util.StringUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -14,6 +15,9 @@ import java.time.LocalDateTime;
 public class PrintUpdate {
 
     public static void main(String[] args) {
+
+
+
         SetEvolisPrint();
 
         // TODO Auto-generated method stub
@@ -29,63 +33,32 @@ public class PrintUpdate {
         //TODO 부모 프레임 생성
         JFrame frm = new JFrame("hey-poca");
 
-        //TODO 부모 프레임 크기 설정 (가로, 세로)
-        frm.setSize(400, 300);
+        frm.setBounds(120, 120, 300, 200); //GUI의 위치와 사이즈 설정
+        frm.setLayout(new BorderLayout()); //BorderLayout은 동, 서, 남, 북으로 나뉘어 있는 레이아웃.
 
-        //TODO 부모 프레임을 화면 가운데에 배치
-        frm.setLocationRelativeTo(null);
+        JLabel label = new JLabel("업데이트 진행중"); //텍스트를 보여줄 JLabel 생성
+        label.setHorizontalAlignment(JLabel.CENTER); //JLabel 가운데 정렬
 
-        //TODO 부모 프레임을 닫았을 때 메모리에서 제거되도록 설정
-        frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        //TODO 부모 레이아웃 설정
-        frm.getContentPane().setLayout(null);
-
-        //TODO 자식 컴포넌트 생성
-        JButton btn1 = new JButton("시작");
-        JButton btn2 = new JButton("종료");
-        JButton btn3 = new JButton("업데이트 확인");
-        JLabel txt1 = new JLabel("업데이트 확인중");
-
-        //TODO 자식 컴포넌트  버튼 위치와 크기 설정
-        btn1.setBounds(50, 170, 100, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
-        btn2.setBounds(250, 170, 100, 30); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
-
-        txt1.setBounds(0, 50, 300, 50); //setBounds(가로위치, 세로위치, 가로길이, 세로길이);
-        txt1.setHorizontalAlignment(JLabel.CENTER); //텍스트 센터 표시 설정
-
-
-
-
-        txt1.setText("실행가능");
-        btn1.setVisible(true);
-
-        //TODO 자식 컴포넌트 이벤트 정의
-        ActionListener btn1_action = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                txt1.setText("실행중...");
-
-                Thread executionThread = new Thread(() -> {
-
-
-
-
+        frm.add(label);
+        frm.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); //X버튼 누를시 종료
+        frm.setVisible(true); //프레임 보여주기
 
                     String serverVersion = getServerFileVersion("https://heysome.kr:444/api/v1/app/print/version/46"); // 서버에 있는 파일 버전 정보를 담은 텍스트 파일의 URL을 입력하세요.
-                    String filePath = new File("").getAbsolutePath()+"\\x86\\version.txt";
+                    String filePath = new File("").getAbsolutePath()+"\\version.txt";
                     String localVersion = getLocalFileVersion(filePath); // 로컬에 있는 파일 경로를 입력하세요.
 
+
                     if (serverVersion != null && localVersion != null) {
-                        if (serverVersion.equals(localVersion) || (Integer.parseInt(serverVersion) <= Integer.parseInt(localVersion))) {
+                        
 
-                            String strimg = new File("").getAbsolutePath();
+                       /* if (serverVersion.equals(localVersion) || (Integer.parseInt(serverVersion) <= Integer.parseInt(localVersion))) {
 
-                            String osArch = System.getProperty("os.arch");
+                                String strimg = new File("").getAbsolutePath();
 
-                            File file = new File(strimg + "\\" + osArch + "\\SmartPrint.exe");
-                            Thread execThread = new Thread(() -> {
+                                String osArch = System.getProperty("os.arch");
+
+                                File file = new File(strimg + "\\" + osArch + "\\SmartPrint.exe");
+
                                 try {
                                     Process p = Runtime.getRuntime().exec(strimg + "\\" + osArch + "\\SmartPrint.exe");
                                     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -93,154 +66,64 @@ public class PrintUpdate {
 
                                     while ((line = reader.readLine()) != null) {
                                         System.out.println(line);
-
-
                                     }
-
                                     p.waitFor();
+
+
                                 } catch (Exception b) {
                                     txt1.setText("에러가 발생했습니다. 종료 후 재시작해주세요");
                                     b.printStackTrace();
                                 }
-                            });
+                        }*/
+                            if (Integer.parseInt(serverVersion) > Integer.parseInt(localVersion)) {
 
-                            execThread.start();
-                            txt1.setText("실행");
-                            execThread.interrupt();
+                                try {
 
-                            btn1.setVisible(false);
-                            btn2.setVisible(true);
-                        }
-                        if(Integer.parseInt(serverVersion) > Integer.parseInt(localVersion) ){
-                            btn1.setVisible(false);
-                            txt1.setText("업데이트가 필요합니다.  업데이트를 진행합니다.");
+                                    Session session = null;
+                                    JSch jsch = new JSch();
+                                    session = jsch.getSession("root", "175.126.123.207", 22);
+                                    session.setPassword("!solfocus0510");
 
-                            try {
+                                    session.setConfig("StrictHostKeyChecking", "no");
+                                    session.connect();
 
-                                Session session = null;
-                                JSch jsch = new JSch();
-                                session = jsch.getSession("root", "175.126.123.207", 22);
-                                session.setPassword("!solfocus0510");
-
-                                session.setConfig("StrictHostKeyChecking", "no");
-                                session.connect();
-
-                                ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
-                                channelSftp.connect();
+                                    ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+                                    channelSftp.connect();
 
 
-                                String strimg = new File("").getAbsolutePath() + "\\x64";
-                                channelSftp.get("/home/heysomeAPI/idp-print/update/SmartPrint.exe", strimg);
+                                    String strimg = new File("").getAbsolutePath();
+                                    channelSftp.get("/home/heysomeAPI/idp-print/update/SmartPrint.exe", strimg);
 
 
-                                String strimg2 = new File("").getAbsolutePath() + "\\x86";
-                                channelSftp.get("/home/heysomeAPI/idp-print/update/SmartPrint.exe", strimg2);
+                                    channelSftp.disconnect();
+                                    session.disconnect();
+                                   
 
 
-                                channelSftp.disconnect();
-                                session.disconnect();
-                                txt1.setText("업데이트가 완료되었습니다.다시 실행해주세요.");
-                                btn1.setVisible(true);
+                                    try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
+                                        String newContent = serverVersion;
+                                        bw.write(newContent);
+                                    } catch (IOException k) {
+                                        k.printStackTrace();
+                                    }
 
 
-                                try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-                                    String newContent = serverVersion;
-                                    bw.write(newContent);
-                                } catch (IOException k) {
-                                    k.printStackTrace();
+                                } catch (JSchException | SftpException h) {
+                                    h.printStackTrace();
                                 }
 
 
-                            } catch (JSchException | SftpException h) {
-                                h.printStackTrace();
-                            }
-
-
+                            }else {
+                            System.out.println("버전 정보를 가져오는 데에 실패하였습니다.");
                         }
 
-                    } else {
-                        System.out.println("버전 정보를 가져오는 데에 실패하였습니다.");
+
                     }
 
 
 
-                });
 
-                executionThread.start();
-
-
-                frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
-            }
-
-        };
-        btn1.addActionListener(btn1_action);
-
-        ActionListener btn2_action = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-
-                Thread executionThread = new Thread(() -> {
-                    String programName = "chrome.exe"; // 종료하려는 프로그램의 이름
-                    Runtime rt = Runtime.getRuntime();
-                    try {
-                        Process p = rt.exec("tasklist");
-                        Process p2 = Runtime.getRuntime().exec("netstat -ano");
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                        BufferedReader reader2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
-                        String line;
-
-
-                        while ((line = reader.readLine()) != null) {
-                            if (line.contains(programName)) {
-                                // 프로그램 목록에서 특정 프로그램을 찾았을 때 해당 프로세스를 종료
-                                String processId = line.split("\\s+")[1];
-                                terminateProcess(processId);
-                            }
-                        }
-
-
-                        while ((line = reader2.readLine()) != null) {
-                            if (line.contains(":8080")) {
-                                String[] parts = line.split("\\s+");
-                                String processId = parts[parts.length - 1];
-                                terminateProcess(processId);
-                            }
-                        }
-                        p.waitFor();
-                        p2.waitFor();
-                    } catch (IOException k) {
-
-                    } catch (InterruptedException m) {
-
-                    }
-                });
-
-                executionThread.start();
-
-// GUI 관련 코드
-                frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-// 나머지 GUI 코드
-                btn1.setVisible(true);
-                txt1.setText("종료");
-
-            }
-        };
-        btn2.addActionListener(btn2_action);
-
-
-
-        //TODO 부모 프레임에다가 자식 컴포넌트 추가
-
-        frm.getContentPane().add(btn1);
-        frm.getContentPane().add(btn2);
-        frm.getContentPane().add(btn3);
-        frm.getContentPane().add(txt1);
-
-        //TODO 부모 프레임이 보이도록 설정
-        frm.setVisible(true);
+        System.exit(0);
 
     }//메인 종료
 
@@ -353,19 +236,22 @@ public class PrintUpdate {
 
             System.out.println(falsePrint);
             System.out.println(truePrint);
+
+
+
             // 프로세스 종료 대기
             process.waitFor();
-            if (StringUtils.hasText(falsePrint)) {
+            if (StringUtils.hasText(falsePrint) && StringUtils.hasText(truePrint)) {
                 try {
                     // 이전 프린터 이름과 새로운 프린터 이름을 자바 변수로 저장
                     String oldPrinterName = falsePrint;
-                    String newPrinterName = falsePrint + "off";
+                    String newPrinterName = falsePrint + " off";
 
                     // 배치 파일 경로 지정 (경로를 적절히 수정해주세요)
 
 
                     String strimg = new File("").getAbsolutePath();
-                    String batchFilePath = strimg + "\\x86\\changeName.bat";
+                    String batchFilePath = strimg + "\\changeName.bat";
 
                     // ProcessBuilder를 사용하여 배치 파일 실행
                     ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", batchFilePath, oldPrinterName, newPrinterName);
@@ -392,7 +278,7 @@ public class PrintUpdate {
 
 
                     String strimg = new File("").getAbsolutePath();
-                    String batchFilePath = strimg + "\\x86\\changeName.bat";
+                    String batchFilePath = strimg + "\\changeName.bat";
 
                     // ProcessBuilder를 사용하여 배치 파일 실행
                     ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", batchFilePath, oldPrinterName, newPrinterName);
